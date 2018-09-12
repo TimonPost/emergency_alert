@@ -17,7 +17,11 @@ from datetime import datetime
 from dateutil import tz
 from termcolor import colored
 from enum import Enum
- 
+from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
+import Queue
+import threading
+import urllib2
+
 groupidold = ""
  
 def curtime():
@@ -31,12 +35,16 @@ multimon_ng = subprocess.Popen("rtl_fm -f 169.65M -M fm -s 22050 | multimon-ng -
                                stdout=subprocess.PIPE,
                                stderr=open('error.txt','a'),
                                shell=True)
+
+
+
 class Pryority (Enum):
     Low = 1
     Medium = 2
     High = 3
     Unknown = 4
     
+
 class Message:
      regex_prio1 = "^A\s?1|\s?A\s?1|PRIO\s?1|^P\s?1"
      regex_prio2 = "^A\s?2|\s?A\s?2|PRIO\s?2|^P\s?2"
@@ -62,18 +70,30 @@ class Message:
             self.prio = Pryority.Unknown          
          
      def draw(self): 
-        
-        
         print ' '
         print  colored(self.timestamp[0] ,'blue', attrs=['bold']), colored(self.message[0], self.color,  attrs=['bold']),
         print '                  ',
         print colored(self.capcode[0], 'white'),
+ 
+class SimpleEcho(WebSocket):
+        
+    def handleConnected(self):
+        print self.address, 'connected'
+          
+    def handleClose(self):
+        print self.address, 'closed'
+    
+def start_server():  
+    server = SimpleWebSocketServer('', 8000, SimpleEcho)
+    server.serveforever()
          
-         
+t = threading.Thread(target=start_server)
+t.daemon = True
+t.start()
+
 try:
     # an endless loop to read alerts
     while True:
-        
         line = multimon_ng.stdout.readline()
         
         multimon_ng.poll()
@@ -98,7 +118,6 @@ try:
 			print colored(capcode, 'white'), 
 		else:
 			groupidold = groupid
- 
 
 except KeyboardInterrupt:
     os.kill(multimon_ng.pid, 9)
