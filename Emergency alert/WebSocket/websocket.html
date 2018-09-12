@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+
+<meta charset="utf-8" />
+
+<title>WebSocket Test</title>
+
+<script language="javascript" type="text/javascript">
+
+
+  function init()
+  {
+	document.myform.url.value = "ws://localhost:8000/"
+  }
+
+  function doConnect()
+  {
+    websocket = new WebSocket(document.myform.url.value);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    writeToScreen("connected\n");
+  }
+
+  function onClose(evt)
+  {
+    writeToScreen("disconnected\n");
+  }
+
+  function onMessage(evt)
+  {
+    writeToScreen("response: " + evt.data + '\n');
+  }
+
+  function onError(evt)
+  {
+    writeToScreen('error: ' + evt.data + '\n');
+
+	websocket.close();
+
+  }
+
+  function writeToScreen(message)
+  {
+    document.myform.outputtext.value += message
+	document.myform.outputtext.scrollTop = document.myform.outputtext.scrollHeight;
+
+  }
+
+  window.addEventListener("load", init, false);
+
+
+   function sendText() {
+		doSend( document.myform.inputtext.value );
+   }
+
+  function clearText() {
+		document.myform.outputtext.value = "";
+   }
+
+   function doDisconnect() {
+		websocket.close();
+   }
+
+
+</script>
+
+<div id="output"></div>
+
+<form name="myform">
+<p>
+<textarea name="outputtext" rows="20" cols="50"></textarea>
+</p>
+<p>
+<textarea name="inputtext" cols="50"></textarea>
+</p>
+<p>
+<textarea name="url" cols="50"></textarea>
+</p>
+
+
+</form>
+</html> 
+
