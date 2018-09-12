@@ -1,14 +1,10 @@
 const app = {
     buildForm() {
       return [
-        $('#name').val(),
-        $('#position').val(),
-        $('#office').val(),
-        $('#extn').val(),
-        $('#startDate')
-          .val()
-          .replace(new RegExp('-', 'g'), '/'),
-        `$${$('#salary').val()}`
+        $('#Datum/Tijd').val(),
+        $('#Bericht').val(),
+        $('#Prio').val(),
+        $('#Voertuig').val(),
       ];
     },
     sendToServer() {
