@@ -21,6 +21,7 @@ from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import Queue
 import threading
 import urllib2
+import json
 
 groupidold = ""
  
@@ -36,14 +37,37 @@ multimon_ng = subprocess.Popen("rtl_fm -f 169.65M -M fm -s 22050 | multimon-ng -
                                stderr=open('error.txt','a'),
                                shell=True)
 
+class Object:
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
+class SimpleEcho(WebSocket):
+    def handleMessage(self):
+      if self.data is None:
+            self.data = ''
+      
+      for client in self.server.connections.itervalues():
+         if client != self:
+            try:
+               client.sendMessage(str(self.address[0]) + ' - ' + str(self.data))
+            except Exception as n:
+               print n
+
+
+    def handleConnected(self):
+        print self.address, 'connected'
+          
+    def handleClose(self):
+        print self.address, 'closed'
+
+echo = SimpleEcho
+server = SimpleWebSocketServer('', 8000, echo)
 
 class Pryority (Enum):
     Low = 1
     Medium = 2
     High = 3
-    Unknown = 4
-    
+    Unknown = 4    
 
 class Message:
      regex_prio1 = "^A\s?1|\s?A\s?1|PRIO\s?1|^P\s?1"
@@ -70,21 +94,26 @@ class Message:
             self.prio = Pryority.Unknown          
          
      def draw(self): 
+        jsonMessage = Object()
+        jsonMessage.message = self.message[0]
+        jsonMessage.timestamp = self.timestamp[0]
+        jsonMessage.capcode = self.capcode[0]
+        jsonMessage.prio =  self.prio.name
+
+        for client in server.connections.itervalues():
+             if client != self:
+                try:
+                    client.sendMessage(jsonMessage.toJSON())
+                except Exception as n:
+                    print n
+
         print ' '
         print  colored(self.timestamp[0] ,'blue', attrs=['bold']), colored(self.message[0], self.color,  attrs=['bold']),
         print '                  ',
         print colored(self.capcode[0], 'white'),
- 
-class SimpleEcho(WebSocket):
-        
-    def handleConnected(self):
-        print self.address, 'connected'
-          
-    def handleClose(self):
-        print self.address, 'closed'
+
     
 def start_server():  
-    server = SimpleWebSocketServer('', 8000, SimpleEcho)
     server.serveforever()
          
 t = threading.Thread(target=start_server)
