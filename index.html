@@ -37,8 +37,9 @@
         });
                 
         function addRow(message, capcode, timestamp, prio) {
+            var capcodetrimmed = capcode.replace('[', '');
             var rowNode = dt1
-                .row.add([message, capcode, timestamp, prio])
+                .row.add([message, capcodetrimmed, timestamp, prio])
                 .draw(false)
                 .node();
             $(rowNode)
