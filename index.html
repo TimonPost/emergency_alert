@@ -1,125 +1,145 @@
 <!DOCTYPE html>
 <html>
-    <head>
+<head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.css">
-        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
-    </head>
+    <link rel="icon" href="./Image/LogoP2000.ico">
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #e7e6e6;
+        }
+        h1 {
+            font: 600 1.8em/1 'Raleway', sans-serif;
+            color: rgba(0,0,0,.5);
+            text-transform: uppercase;
+            letter-spacing: .5em;
+        }
+    </style>
+</head>
     <body>
- <table id="example" class="display" width="100%">
-    <thead>
-        <tr>
-            <th>Bericht</th>
-            <th>Cap code</th>
-            <th>Datum / Tijd</th>
-            <th>Prio</th>
-        </tr>
-    </thead>
-    <tbody>
-  
-    </tbody>
-</table>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
-<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/plug-ins/1.10.15/api/row().show().js"></script>
-<script>
-        $(document).ready(function() {
-        
-        var dt1 = $('#example').DataTable({
-            paging: true,
-            //ordering: false,
-            orderFixed: [2, 'desc'],
-            searching: false,
-            lengthChange: false,
-            //displayStart: 5,
-        });
-                
-        function addRow(message, capcode, timestamp, prio) {
-            var capcodetrimmed = capcode.replace('[', '');
-            var rowNode = dt1
-                .row.add([message, capcodetrimmed, timestamp, prio])
-                .draw(false)
-                .node();
-            $(rowNode)
-                .animate({backgroundColor: 'white'}, 2500);
-        }
-        
-        function updateRow() {
-            var rowNum = randomRow();
-            var row = dt1.row(randomRow());
-            // update the second cell i.e. no. 1
-            // draw() only matters if sorting
-            // by the updated column
-            var cellNode = dt1.cell(rowNum, 1)
-                .data(timestamp)
-                .draw(false)
-                .node();
-            $(cellNode)
-                .css({backgroundColor: 'blue'})
-                .animate({backgroundColor: 'white'}, 2500);
-        }
-        
-        function deleteRow() {
-            var row = dt1.row(randomRow());
-            var rowNode = row.node();
-            $(rowNode)
-                .css({backgroundColor: 'red'})
-                .animate({backgroundColor: 'black'}, 2500,
-                    function() {row.remove().draw(false)});
-        }
-    
-        function randomRow() {
-            var info = dt1.page.info();
-            return randomInt(info.recordsTotal);
-        }
-        
-        function randomInt(max) {
-            return Math.floor((Math.random() * max));
-        }
-        
-        function timestamp() {
-            var d = new Date();    
-            return d.toLocaleTimeString(); 
-        }
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1><img src="./Image/LogoP2000.png" width="60" height="60" />&nbsp;P2000 Alarmeringen</h1>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="example" class="display" width="100%">
+                        <thead>
+                            <tr>
+                                <th>Bericht</th>
+                                <th>Cap code</th>
+                                <th>Datum / Tijd</th>
+                                <th>Prio</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.2/axios.js"></script>
+            <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+            <script src="https://cdn.datatables.net/plug-ins/1.10.15/api/row().show().js"></script>
+            <script>
+                $(document).ready(function () {
 
-	    function doConnect() {
-	        websocket = new WebSocket("ws://145.44.68.31:8000/");
-	        websocket.onopen = function (evt) { onOpen(evt) };
-	        websocket.onclose = function (evt) { onClose(evt) };
-       	 	websocket.onerror = function (evt) { onError(evt) };
-            websocket.onmessage = function (evt) { onMessage(evt) };
-	    }
-	    
-	    function onOpen(evt) {
-	        console.log("connected\n");
-	    }
-	    
-	    function onClose(evt) {
-	        console.log("disconnected\n");
-	    }
-	    
-	    function onMessage(evt) {
-            var alertMessage = JSON.parse(evt.data)
-	        addRow(alertMessage.message, alertMessage.capcode, alertMessage.timestamp, alertMessage.prio);
-	    }
-	    
-	    function onError(evt) {
-	        console.log('error: ' + evt.data + '\n');
-	        websocket.close();
-	    }
+                    var dt1 = $('#example').DataTable({
+                        paging: true,
+                        //ordering: false,
+                        orderFixed: [2, 'desc'],
+                        searching: false,
+                        lengthChange: false,
+                        //displayStart: 5,
+                    });
 
-	    
-	    function doDisconnect() {
-	        websocket.close();
-    	}
-    
-        doConnect()
-    });
-    
-    
-</script>
+                    function addRow(message, capcode, timestamp, prio) {
+                        var trimmedCapcode = capcode.replace('[', '');
+                        var rowNode = dt1
+                            .row.add([message, trimmedCapcode, timestamp, prio])
+                            .draw(false)
+                            .node();
+                        $(rowNode)
+                            .animate({ backgroundColor: 'white' }, 2500);
+                    }
+
+                    function updateRow() {
+                        var rowNum = randomRow();
+                        var row = dt1.row(randomRow());
+                        // update the second cell i.e. no. 1
+                        // draw() only matters if sorting
+                        // by the updated column
+                        var cellNode = dt1.cell(rowNum, 1)
+                            .data(timestamp)
+                            .draw(false)
+                            .node();
+                        $(cellNode)
+                            .css({ backgroundColor: 'blue' })
+                            .animate({ backgroundColor: 'white' }, 2500);
+                    }
+
+                    function deleteRow() {
+                        var row = dt1.row(randomRow());
+                        var rowNode = row.node();
+                        $(rowNode)
+                            .css({ backgroundColor: 'red' })
+                            .animate({ backgroundColor: 'black' }, 2500,
+                                function () { row.remove().draw(false) });
+                    }
+
+                    function randomRow() {
+                        var info = dt1.page.info();
+                        return randomInt(info.recordsTotal);
+                    }
+
+                    function randomInt(max) {
+                        return Math.floor((Math.random() * max));
+                    }
+
+                    function timestamp() {
+                        var d = new Date();
+                        return d.toLocaleTimeString();
+                    }
+
+                    function doConnect() {
+                        websocket = new WebSocket("ws://145.44.68.31:8000/");
+                        websocket.onopen = function (evt) { onOpen(evt) };
+                        websocket.onclose = function (evt) { onClose(evt) };
+                        websocket.onerror = function (evt) { onError(evt) };
+                        websocket.onmessage = function (evt) { onMessage(evt) };
+                    }
+
+                    function onOpen(evt) {
+                        console.log("connected\n");
+                    }
+
+                    function onClose(evt) {
+                        console.log("disconnected\n");
+                    }
+
+                    function onMessage(evt) {
+                        var alertMessage = JSON.parse(evt.data)
+                        addRow(alertMessage.message, alertMessage.capcode, alertMessage.timestamp, alertMessage.prio);
+                    }
+
+                    function onError(evt) {
+                        console.log('error: ' + evt.data + '\n');
+                        websocket.close();
+                    }
+
+
+                    function doDisconnect() {
+                        websocket.close();
+                    }
+
+                    doConnect()
+                });
+
+
+            </script>
 </body>
 
 </html>

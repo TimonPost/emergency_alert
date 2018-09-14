@@ -14,7 +14,8 @@ import urllib2
 import json
 
 groupidold = ""
- 
+oldMessage = ""
+
  # gets the current time
 def curtime():
     return time.strftime("%H:%M:%S %Y-%m-%d")
@@ -71,7 +72,7 @@ class Message:
      regex_prio1 = "^A\s?1|\s?A\s?1|PRIO\s?1|^P\s?1"
      regex_prio2 = "^A\s?2|\s?A\s?2|PRIO\s?2|^P\s?2"
      regex_prio3 = "^B\s?1|^B\s?2|^B\s?3|PRIO\s?3|^P\s?3|PRIO\s?4|^P\s?4"
-          
+
      def __init__(self, message, capcode, timestamp,flex):
          # init local variables
          self.message = message,
@@ -132,23 +133,19 @@ try:
     while True:
         # read line with mutigon this is the line printed when an alert was received
         line = multimon_ng.stdout.readline()
-        
         # poll until an alert is reveived
         multimon_ng.poll()
         if line.__contains__("ALN"):
-            if line.startswith('FLEX'):  
-               # read group id from string it is at index 35-41
-                groupid = line[35:41]
+            if line.startswith('FLEX'): 
+                message = line[58:]
 
-                # check if we received message before
-                if groupid == groupidold: 
-                    print colored(capcode, 'white'), 
-                else:
+                if message != oldMessage: 
+                    # read group id from string it is at index 35-41
+                    groupid = line[35:41]
                     # read flex, timestamp, capcode and message from line
                     flex = line[0:5]
                     timestamp = line[6:25]
-                    capcode = line[43:52]
-                    message = line[58:]
+                    capcode = line[43:52]                   
                     
                     # convert datetime to local datetime
                     utc = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
@@ -157,15 +154,22 @@ try:
                     local = local.strftime("%d-%m-%Y %H:%M:%S")
 
                     # create message object with the valus read from line.
-                    message = Message(message, capcode, local, flex)                       
-                    message.draw()
-                    message.sendToWebSocket()
+                    alertMessage = Message(message, capcode, local, flex)                       
+                    alertMessage.draw()
+                    alertMessage.sendToWebSocket()
+                   
+                    # check if we received message before
+                    oldMessage = message
 
                     # execute the alert script witch will make the leds on rpi blink
                     execfile('./Alarm.py')
 
-                    # set or groupid to this new id so that we can know if message has already been received.
-                    groupidold = groupid
+                    if groupid == groupidold: 
+                        print colored(capcode, 'white'), 
+                    else:                   
+                        
+                        # set or groupid to this new id so that we can know if message has already been received.
+                        groupidold = groupid
                     
 except KeyboardInterrupt:
     os.kill(multimon_ng.pid, 9)
