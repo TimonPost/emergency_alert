@@ -92,8 +92,8 @@ class Message:
          else:
             self.color = 'magenta'
             self.prio = Pryority.Unknown          
-         
-     def draw(self): 
+     
+     def sendToWebSocket(self):
         jsonMessage = Object()
         jsonMessage.message = self.message[0]
         jsonMessage.timestamp = self.timestamp[0]
@@ -101,12 +101,13 @@ class Message:
         jsonMessage.prio =  self.prio.name
 
         for client in server.connections.itervalues():
-             if client != self:
+            if client != self:
                 try:
                     client.sendMessage(jsonMessage.toJSON())
                 except Exception as n:
                     print n
-
+        
+     def draw(self):
         print ' '
         print  colored(self.timestamp[0] ,'blue', attrs=['bold']), colored(self.message[0], self.color,  attrs=['bold']),
         print '                  ',
@@ -127,26 +128,30 @@ try:
         
         multimon_ng.poll()
         if line.__contains__("ALN"):
-		if line.startswith('FLEX'):
+            if line.startswith('FLEX'):                        
+               
+                groupid = line[35:41]
                         
-			flex = line[0:5]
-			timestamp = line[6:25]
-			message = line[58:]
-			groupid = line[35:41]
-			capcode = line[43:52]
-                        
-                        utc = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-			utc = utc.replace(tzinfo=tz.tzutc())
-			local = utc.astimezone(tz.tzlocal())
-			local = local.strftime("%d-%m-%Y %H:%M:%S")
-                       
-                        message = Message(message, capcode, local, flex)                       
-                        message.draw()
-                        
-		if groupid == groupidold: 
-			print colored(capcode, 'white'), 
-		else:
-			groupidold = groupid
+                if groupid == groupidold: 
+                    print colored(capcode, 'white'), 
+                else:
+                    flex = line[0:5]
+                    timestamp = line[6:25]
+                    capcode = line[43:52]
+                    message = line[58:]
+                    
+                    utc = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                    utc = utc.replace(tzinfo=tz.tzutc())
+                    local = utc.astimezone(tz.tzlocal())
+                    local = local.strftime("%d-%m-%Y %H:%M:%S")
+
+                    message = Message(message, capcode, local, flex)                       
+                    message.draw()
+                    message.sendToWebSocket()
+
+                    execfile('./Alarm.py')
+                    groupidold = groupid
+
 
 except KeyboardInterrupt:
     os.kill(multimon_ng.pid, 9)
