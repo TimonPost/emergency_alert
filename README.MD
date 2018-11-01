@@ -1,3 +1,6 @@
+
+This project was developed is a by KBS group 2 ICTM1S Windesheim year 1.
+
 This is a project to read p2000 p2000 emergency alerts alerts. This could be done by plugging in a DVB-T usb receiver and installing the nessiarly drivers. 
 
 This project contains the following files:
